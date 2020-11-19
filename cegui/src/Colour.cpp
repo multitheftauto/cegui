@@ -57,7 +57,6 @@ Colour::Colour(float red, float green, float blue, float alpha) :
 	d_red(red),
 	d_green(green),
 	d_blue(blue),
-    d_argb(0x00000000),
 	d_argbValid(false)
 {
 }

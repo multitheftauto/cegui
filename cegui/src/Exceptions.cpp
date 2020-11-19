@@ -33,13 +33,12 @@
 
 #if defined( __WIN32__ ) || defined( _WIN32)
 #   include <windows.h>
-#elif defined(__ANDROID__)
-#   include <android/log.h>
 #endif
 
-#if defined(_DEBUG) || defined(DEBUG)
 #if defined(_MSC_VER)
 #   include <dbghelp.h>
+#elif defined(__ANDROID__)
+#   include <android/log.h>
 #elif     (defined(__linux__) && !defined(__ANDROID__)) \
       ||  defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) \
       ||  defined(__HAIKU__)
@@ -47,7 +46,6 @@
 #   include <dlfcn.h>
 #   include <cxxabi.h>
 #   include <cstdlib>
-#endif
 #endif
 
 // Start of CEGUI namespace section
@@ -59,6 +57,14 @@ bool Exception::d_stdErrEnabled(true);
 //----------------------------------------------------------------------------//
 static void dumpBacktrace(size_t frames)
 {
+
+#if defined(__ANDROID__)
+
+    // Not implemented yet.
+    CEGUI_UNUSED(frames);
+
+#else
+
 #if defined(_DEBUG) || defined(DEBUG)
 #if defined(_MSC_VER)
     SymSetOptions(SYMOPT_DEFERRED_LOADS | SYMOPT_INCLUDE_32BIT_MODULES);
@@ -180,6 +186,8 @@ static void dumpBacktrace(size_t frames)
 #else
 
     CEGUI_UNUSED(frames);
+
+#endif
 
 #endif
 }

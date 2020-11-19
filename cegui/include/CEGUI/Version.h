@@ -1,8 +1,6 @@
 /***********************************************************************
-	created:	14/10/2010
-	author:		Martin Preisler
-
-	purpose:	Implements the default "dummy" allocator
+	created:	7/3/2005
+	author:		jacmoe
 *************************************************************************/
 /***************************************************************************
  *   Copyright (C) 2004 - 2010 Paul D Turner & The CEGUI Development Team
@@ -26,42 +24,26 @@
  *   ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  *   OTHER DEALINGS IN THE SOFTWARE.
  ***************************************************************************/
-#ifndef _CEGUIMemoryStdAllocator_h_
-#define _CEGUIMemoryStdAllocator_h_
+//////////////////////////////////////////////////////////////////////////
+/*************************************************************************
 
-#include <stdlib.h>
-#include <limits>
+This file contains CEGUI version defines
+*************************************************************************/
+//////////////////////////////////////////////////////////////////////////
+#ifndef _CEGUIVersion_h_
+#define _CEGUIVersion_h_
 
-namespace CEGUI
-{
+//////////////////////////////////////////////////////////////////////////
+// Define CEGUI version
+//////////////////////////////////////////////////////////////////////////
+#define CEGUI_VERSION_MAJOR 0
+#define CEGUI_VERSION_MINOR 8
+#define CEGUI_VERSION_PATCH 7
 
-class CEGUIEXPORT StdAllocator
-{
-public:
-	static inline void* allocateBytes(size_t count)
-	{
-        return malloc(count);
-	}
+// this is used to check consistency between runtime binary and headers
+// used for compiling.  You should not generally use this in client code
+// or rely on its value meaning anything in particular.
+#define CEGUI_VERSION_ABI 208
 
-	static inline void deallocateBytes(void* ptr)
-	{
-        free(ptr);
-	}
+#endif	// end of guard _CEGUIVersion_h_
 
-    // !!! IF YOU GET AN ERROR HERE:
-    // that says something like: "You can't call allocateBytes with 4 arguments",
-    // you are using StdAllocator and trying to enable CEGUI_CUSTOM_ALLOCATORS_DEBUG, you
-    // have to provide your own custom memory allocator if you want memory debugging.
-
-	/// Get the maximum size of a single allocation
-	static inline size_t getMaxAllocationSize()
-	{
-		return std::numeric_limits<size_t>::max();
-	}
-};
-
-CEGUI_SET_DEFAULT_ALLOCATOR(StdAllocator)
-
-}
-
-#endif	// end of guard _CEGUIMemoryStdAllocator_h_

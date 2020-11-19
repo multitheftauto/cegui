@@ -93,9 +93,7 @@ class CEGUIEXPORT UDim :
     public AllocatedObject<UDim>
 {
 public:
-    inline UDim() :
-        d_scale(0),
-        d_offset(0)
+    inline UDim()
     {}
     
     inline UDim(float scale, float offset):

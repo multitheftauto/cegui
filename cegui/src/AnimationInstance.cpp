@@ -44,7 +44,6 @@ const String AnimationInstance::EventAnimationStarted("AnimationStarted");
 const String AnimationInstance::EventAnimationStopped("AnimationStopped");
 const String AnimationInstance::EventAnimationPaused("AnimationPaused");
 const String AnimationInstance::EventAnimationUnpaused("AnimationUnpaused");
-const String AnimationInstance::EventAnimationFinished("AnimationFinished");
 const String AnimationInstance::EventAnimationEnded("AnimationEnded");
 const String AnimationInstance::EventAnimationLooped("AnimationLooped");
 
@@ -297,20 +296,6 @@ void AnimationInstance::togglePause(bool skipNextStep)
 }
 
 //----------------------------------------------------------------------------//
-void AnimationInstance::finish()
-{
-    if (d_definition)
-    {
-        setPosition(d_definition->getDuration());
-        apply();
-    }
-
-    d_running = false;
-    setPosition(0.0);
-    onAnimationFinished();
-}
-
-//----------------------------------------------------------------------------//
 bool AnimationInstance::isRunning() const
 {
     return d_running;
@@ -319,13 +304,13 @@ bool AnimationInstance::isRunning() const
 //----------------------------------------------------------------------------//
 void AnimationInstance::setAutoSteppingEnabled(bool enabled)
 {
-    d_autoSteppingEnabled = enabled;
+	d_autoSteppingEnabled = enabled;
 }
 
 //----------------------------------------------------------------------------//
 bool AnimationInstance::isAutoSteppingEnabled() const
 {
-    return d_autoSteppingEnabled;
+	return d_autoSteppingEnabled;
 }
 
 //----------------------------------------------------------------------------//
@@ -486,14 +471,6 @@ bool AnimationInstance::handleTogglePause(const CEGUI::EventArgs&)
 }
 
 //----------------------------------------------------------------------------//
-bool AnimationInstance::handleFinish(const CEGUI::EventArgs&)
-{
-    finish();
-
-    return true;
-}
-
-//----------------------------------------------------------------------------//
 void AnimationInstance::savePropertyValue(const String& propertyName)
 {
     assert(d_target);
@@ -592,16 +569,6 @@ void AnimationInstance::onAnimationUnpaused()
     {
         AnimationEventArgs args(this);
         d_eventReceiver->fireEvent(EventAnimationUnpaused, args, EventNamespace);
-    }
-}
-
-//----------------------------------------------------------------------------//
-void AnimationInstance::onAnimationFinished()
-{
-    if (d_eventReceiver)
-    {
-        AnimationEventArgs args(this);
-        d_eventReceiver->fireEvent(EventAnimationFinished, args, EventNamespace);
     }
 }
 

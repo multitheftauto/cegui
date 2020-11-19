@@ -198,7 +198,8 @@ namespace CEGUI
                 break;
 
             default:
-                CEGUI_THROW(InvalidRequestException("Invalid vertical text formatting."));
+                CEGUI_THROW(InvalidRequestException(
+                  "Invalid vertical formatting."));
             }
 
         // calculate final colours

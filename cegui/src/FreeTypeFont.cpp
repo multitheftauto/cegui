@@ -50,8 +50,6 @@ namespace CEGUI
 #define INTER_GLYPH_PAD_SPACE 2
 // A multiplication coefficient to convert FT_Pos values into normal floats
 #define FT_POS_COEF  (1.0/64.0)
-// Default texture size for temporary buffer
-#define TEXTURE_SIZE (512)
 
 //----------------------------------------------------------------------------//
 // Font objects usage count
@@ -60,24 +58,11 @@ static int ft_usage_count = 0;
 static FT_Library ft_lib;
 
 //----------------------------------------------------------------------------//
-
-#undef __FTERRORS_H__                                           
-#define FT_ERRORDEF( e, v, s )  { e, s },                       
-#define FT_ERROR_START_LIST     {                               
-#define FT_ERROR_END_LIST       { 0, 0 } };                     
-                                                                         
-struct FreeTypeErrorDescription                                                 
-{                                                               
-int          err_code;                                        
-const char*  err_msg;                                         
-};
-
-static const FreeTypeErrorDescription ftErrorDescs[] =
-#include FT_ERRORS_H 
-
-static const std::vector<FreeTypeErrorDescription> freeTypeErrorDescriptions
-    (ftErrorDescs, ftErrorDescs + sizeof(ftErrorDescs) / sizeof(FreeTypeErrorDescription) );
-
+#undef __FTERRORS_H__
+#define FT_ERRORDEF( e, v, s ) s,
+#define FT_ERROR_START_LIST static const char* ft_errors[] = {
+#define FT_ERROR_END_LIST 0};
+#include FT_ERRORS_H
 
 //----------------------------------------------------------------------------//
 FreeTypeFont::FreeTypeFont(const String& font_name, const float point_size,
@@ -93,13 +78,6 @@ FreeTypeFont::FreeTypeFont(const String& font_name, const float point_size,
     d_antiAliased(anti_aliased),
     d_fontFace(0)
 {
-#if defined(CEGUI_HAS_FREETYPE_TEMPORARY_BUFFER)
-    d_temp_x = 0;
-    d_temp_y = 0;
-    d_temp_yb = 0;
-    d_temp_texture = 0;
-    d_temp_mem_buffer = 0;
-#endif
     if (!ft_usage_count++)
         FT_Init_FreeType(&ft_lib);
 
@@ -205,53 +183,24 @@ void FreeTypeFont::rasterise(utf32 start_codepoint, utf32 end_codepoint) const
     while (true)
     {
         // Create a new Imageset for glyphs
-#if defined(CEGUI_HAS_FREETYPE_TEMPORARY_BUFFER)
-        uint texsize = TEXTURE_SIZE;
-#else
         uint texsize = getTextureSize(s, e);
-#endif
         // If all glyphs were already rendered, do nothing
         if (!texsize)
             break;
 
-        Texture* texture = 0;
-        argb_t* mem_buffer = 0;
-#if defined(CEGUI_HAS_FREETYPE_TEMPORARY_BUFFER)
-        texture = d_temp_texture;
-        mem_buffer = d_temp_mem_buffer;
-#endif
-        if (texture == 0)
-        {
-            const String texture_name(d_name + "_auto_glyph_images_" +
-                                       PropertyHelper<int>::toString(s->first));
-            texture = &System::getSingleton().getRenderer()->createTexture(
-                texture_name, Sizef(static_cast<float>(texsize), static_cast<float>(texsize)));
-            d_glyphTextures.push_back(texture);
+        const String texture_name(d_name + "_auto_glyph_images_" +
+                                   PropertyHelper<int>::toString(s->first));
+        Texture& texture = System::getSingleton().getRenderer()->createTexture(
+            texture_name, Sizef(static_cast<float>(texsize), static_cast<float>(texsize)));
+        d_glyphTextures.push_back(&texture);
 
-            // Create a memory buffer where we will render our glyphs
-            if (mem_buffer == 0)
-            {
-                mem_buffer = CEGUI_NEW_ARRAY_PT(argb_t, texsize * texsize, BufferAllocator);
-            }
-            memset(mem_buffer, 0, texsize * texsize * sizeof(argb_t));
-
-#if defined(CEGUI_HAS_FREETYPE_TEMPORARY_BUFFER)
-            d_temp_x = INTER_GLYPH_PAD_SPACE;
-            d_temp_y = INTER_GLYPH_PAD_SPACE;
-            d_temp_yb = INTER_GLYPH_PAD_SPACE;
-            d_temp_texture = texture;
-            d_temp_mem_buffer = mem_buffer;
-#endif
-        }
+        // Create a memory buffer where we will render our glyphs
+        argb_t* mem_buffer = CEGUI_NEW_ARRAY_PT(argb_t, texsize * texsize, BufferAllocator);
+        memset(mem_buffer, 0, texsize * texsize * sizeof(argb_t));
 
         // Go ahead, line by line, top-left to bottom-right
         uint x = INTER_GLYPH_PAD_SPACE, y = INTER_GLYPH_PAD_SPACE;
         uint yb = INTER_GLYPH_PAD_SPACE;
-#if defined(CEGUI_HAS_FREETYPE_TEMPORARY_BUFFER)
-        x = d_temp_x;
-        y = d_temp_y;
-        yb = d_temp_yb;
-#endif
 
         // Set to true when we finish rendering all glyphs we were asked to
         bool finished = false;
@@ -287,7 +236,7 @@ void FreeTypeFont::rasterise(utf32 start_codepoint, utf32 end_codepoint) const
                     Vector2f offset(0, 0);
                     const String name(PropertyHelper<unsigned long>::toString(s->first));
                     BasicImage* img =
-                        CEGUI_NEW_AO BasicImage(name, texture, area, offset, ASM_Disabled,
+                        CEGUI_NEW_AO BasicImage(name, &texture, area, offset, ASM_Disabled,
                                        d_nativeResolution);
                     d_glyphImages.push_back(img);
                     s->second.setImage(img);
@@ -309,12 +258,7 @@ void FreeTypeFont::rasterise(utf32 start_codepoint, utf32 end_codepoint) const
                     // Check if glyph bottom margine does not exceed texture size
                     uint y_bot = y + glyph_h;
                     if (y_bot > texsize)
-                    {
-#if defined(CEGUI_HAS_FREETYPE_TEMPORARY_BUFFER)
-                        d_temp_texture = 0;
-#endif
                         break;
-                    }
 
                     // Copy rendered glyph to memory buffer in RGBA format
                     drawGlyphToBuffer(mem_buffer + (y * texsize) + x, texsize);
@@ -330,7 +274,7 @@ void FreeTypeFont::rasterise(utf32 start_codepoint, utf32 end_codepoint) const
 
                     const String name(PropertyHelper<unsigned long>::toString(s->first));
                     BasicImage* img =
-                        CEGUI_NEW_AO BasicImage(name, texture, area, offset, ASM_Disabled,
+                        CEGUI_NEW_AO BasicImage(name, &texture, area, offset, ASM_Disabled,
                                        d_nativeResolution);
                     d_glyphImages.push_back(img);
                     s->second.setImage(img);
@@ -356,21 +300,11 @@ void FreeTypeFont::rasterise(utf32 start_codepoint, utf32 end_codepoint) const
             if (!forward)
                 if ((s == d_cp_map.begin()) || (--s == d_cp_map.begin()))
                     break;
-#if defined(CEGUI_HAS_FREETYPE_TEMPORARY_BUFFER)
-            if (finished)
-                break;
-#endif
         }
 
         // Copy our memory buffer into the texture and free it
-        texture->loadFromMemory(mem_buffer, Sizef(static_cast<float>(texsize), static_cast<float>(texsize)), Texture::PF_RGBA);
-#if defined(CEGUI_HAS_FREETYPE_TEMPORARY_BUFFER)
-        d_temp_x = x;
-        d_temp_y = y;
-        d_temp_yb = yb;
-#else
+        texture.loadFromMemory(mem_buffer, Sizef(static_cast<float>(texsize), static_cast<float>(texsize)), Texture::PF_RGBA);
         CEGUI_DELETE_ARRAY_PT(mem_buffer, argb_t, texsize * texsize, BufferAllocator);
-#endif
 
         if (finished)
             break;
@@ -440,12 +374,6 @@ void FreeTypeFont::free()
     FT_Done_Face(d_fontFace);
     d_fontFace = 0;
     System::getSingleton().getResourceProvider()->unloadRawDataContainer(d_fontData);
-
-#if defined(CEGUI_HAS_FREETYPE_TEMPORARY_BUFFER)
-    CEGUI_DELETE_ARRAY_PT(d_temp_mem_buffer, argb_t, TEXTURE_SIZE * TEXTURE_SIZE, BufferAllocator);
-    d_temp_texture = 0;
-    d_temp_mem_buffer = 0;
-#endif
 }
 
 //----------------------------------------------------------------------------//
@@ -463,24 +391,9 @@ void FreeTypeFont::updateFont()
     if ((error = FT_New_Memory_Face(ft_lib, d_fontData.getDataPtr(),
                            static_cast<FT_Long>(d_fontData.getSize()), 0,
                            &d_fontFace)) != 0)
-    {
-        String errorMsg = "Unknown freetype error occurred: " + error;
-  
-        for(size_t i = 0; i < freeTypeErrorDescriptions.size(); ++i)
-        {
-            const FreeTypeErrorDescription& currentFreetypeError = freeTypeErrorDescriptions[i];
-
-            if(currentFreetypeError.err_code == error)
-            {
-                errorMsg = currentFreetypeError.err_msg;
-            }
-        }
-
-
-
         CEGUI_THROW(GenericException("Failed to create face from font file '" +
-            d_filename + "' error was: " + errorMsg));
-    }
+            d_filename + "' error was: " +
+            ((error < FT_Err_Max) ? ft_errors[error] : "unknown error")));
 
     // check that default Unicode character map is available
     if (!d_fontFace->charmap)

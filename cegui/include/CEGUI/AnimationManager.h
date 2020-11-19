@@ -300,7 +300,7 @@ public:
     }
 
 private:
-    typedef std::map<String, Interpolator*, StringFastLessCompare
+    typedef std::map<String, Interpolator*, std::less<String>
         CEGUI_MAP_ALLOC(String, Interpolator*)> InterpolatorMap;
     String generateUniqueAnimationName();
     
@@ -311,8 +311,7 @@ private:
     //! stores interpolators that are inbuilt in CEGUI
     BasicInterpolatorList d_basicInterpolators;
 
-    typedef std::map<String, Animation*, StringFastLessCompare
-        CEGUI_MAP_ALLOC(String, Animation*)> AnimationMap;
+    typedef std::map<String, Animation*> AnimationMap;
     //! all defined animations
     AnimationMap d_animations;
 

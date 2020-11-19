@@ -117,8 +117,7 @@ public:
          const String& file_pattern,
          const String& resource_group);
 protected:
-  typedef std::map<String, ResourceProvider*, StringFastLessCompare
-    CEGUI_MAP_ALLOC(String, ResourceProvider*)> Providermap;
+  typedef std::map<String, ResourceProvider*, StringFastLessCompare> Providermap;
   Providermap  d_providerlist;
 public:
   typedef ConstMapIterator<Providermap> ProviderIterator;

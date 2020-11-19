@@ -63,13 +63,6 @@ public:
     The ScrollablePane widget allows child windows to be attached which cover an
     area larger than the ScrollablePane itself and these child windows can be
     scrolled into view using the scrollbars of the scrollable pane.
-
-    Note: If the content pane is set to be auto-sized, and not both (horizontal
-    and vertical) scrollbars are set to be always visible, and any of the
-    children's size is not set to be an absolute dimension (i.e. its relative
-    component is non-zero), this creates a circular dependency which may lead to
-    a crash. Please don't use such a combination. It'll probably not be allowed
-    in future versions of CEGUI.
 */
 class CEGUIEXPORT ScrollablePane : public Window
 {
@@ -150,13 +143,6 @@ public:
     \brief
         Set whether the vertical scroll bar should always be shown.
 
-        Note: If the content pane is set to be auto-sized, and not both
-        (horizontal and vertical) scrollbars are set to be always visible, and
-        any of the children's size is not set to be an absolute dimension (i.e.
-        its relative component is non-zero), this creates a circular dependency
-        which may lead to a crash. Please don't use such a combination. It'll
-        probably not be allowed in future versions of CEGUI.
-
     \param setting
         - true if the vertical scroll bar should be shown even when it is not
           required.
@@ -181,13 +167,6 @@ public:
     /*!
     \brief
         Set whether the horizontal scroll bar should always be shown.
-
-        Note: If the content pane is set to be auto-sized, and not both
-        (horizontal and vertical) scrollbars are set to be always visible, and
-        any of the children's size is not set to be an absolute dimension (i.e.
-        its relative component is non-zero), this creates a circular dependency
-        which may lead to a crash. Please don't use such a combination. It'll
-        probably not be allowed in future versions of CEGUI.
 
     \param setting
         - true if the horizontal scroll bar should be shown even when it is not
@@ -214,13 +193,6 @@ public:
     /*!
     \brief
         Set whether the content pane should be auto-sized.
-
-        Note: If the content pane is set to be auto-sized, and not both
-        (horizontal and vertical) scrollbars are set to be always visible, and
-        any of the children's size is not set to be an absolute dimension (i.e.
-        its relative component is non-zero), this creates a circular dependency
-        which may lead to a crash. Please don't use such a combination. It'll
-        probably not be allowed in future versions of CEGUI.
 
     \param setting
         - true to indicate the content pane should automatically resize itself.

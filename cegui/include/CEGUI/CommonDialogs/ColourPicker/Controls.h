@@ -102,7 +102,6 @@ public:
 
     // overridden from window
     void initialiseComponents();
-    void destroy(void);
 
 protected:
     //! Widget name for the cancel button component.

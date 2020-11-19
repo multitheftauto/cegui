@@ -194,15 +194,4 @@ typedef std::ostream OutStream;     //!< Output stream class.
 #include "CEGUI/ForwardRefs.h"
 #include "CEGUI/MemoryAllocation.h"
 
-/*************************************************************************
-    Static assert
-*************************************************************************/
-#if (__cplusplus >= 201103L) || (_MSC_VER >= 1600)
-#   define CEGUI_STATIC_ASSERT(e) static_assert(e, #e)
-#elif defined(_MSC_VER)
-#   define CEGUI_STATIC_ASSERT(e) _STATIC_ASSERT(e)
-#else
-#   define CEGUI_STATIC_ASSERT(e) {}
-#endif
-
 #endif	// end of guard _CEGUIBase_h_

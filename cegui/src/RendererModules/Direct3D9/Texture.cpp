@@ -24,6 +24,7 @@
  *   ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  *   OTHER DEALINGS IN THE SOFTWARE.
  ***************************************************************************/
+#include <d3dx9.h>
 #include "CEGUI/RendererModules/Direct3D9/Texture.h"
 #include "CEGUI/Exceptions.h"
 #include "CEGUI/System.h"
@@ -541,64 +542,23 @@ void Direct3D9Texture::loadFromMemory(const void* buffer,
     const D3DFORMAT pixfmt = toD3DPixelFormat(pixel_format);
     createDirect3D9Texture(buffer_size, pixfmt);
 
-    D3DSURFACE_DESC surfaceDesc;
-    if (FAILED(d_texture->GetLevelDesc(0, &surfaceDesc)))
-        CEGUI_THROW(RendererException(
-            "IDirect3DTexture9::GetLevelDesc failed."));
+    LPDIRECT3DSURFACE9 surface = getTextureSurface();
+    const PixelBuffer pixel_buffer(buffer, buffer_size, pixel_format);
 
-    LPDIRECT3DTEXTURE9 sysMemory = NULL;
-    LPDIRECT3DSURFACE9 surface = NULL;
-    if (surfaceDesc.Pool == D3DPOOL_DEFAULT)
-    {
-        const Sizef tex_sz(d_owner.getAdjustedSize(d_dataSize));
+    const RECT src_rect = { 0, 0,
+        static_cast<LONG>(buffer_size.d_width),
+        static_cast<LONG>(buffer_size.d_height) };
 
-        if (FAILED(d_owner.getDevice()->CreateTexture(static_cast<UINT>(tex_sz.d_width),
-                                                      static_cast<UINT>(tex_sz.d_height),
-                                                      1, 0, pixfmt, D3DPOOL_SYSTEMMEM, &sysMemory, NULL)))
-            CEGUI_THROW(RendererException(
-                "IDirect3DDevice9::CreateTexture failed."));
+    HRESULT hr = D3DXLoadSurfaceFromMemory(
+            surface, 0, 0, pixel_buffer.getPixelDataPtr(),
+            pixfmt == D3DFMT_X8R8G8B8 ? D3DFMT_R8G8B8 : pixfmt,
+            pixel_buffer.getPitch(), 0, &src_rect, D3DX_FILTER_NONE, 0);
 
-        if (FAILED(sysMemory->GetSurfaceLevel(0, &surface)))
-        {
-            sysMemory->Release();
-            CEGUI_THROW(RendererException(
-                "IDirect3DTexture9::GetSurfaceLevel failed."));
-        }
-    }
-    else
-    {
-        surface = getTextureSurface();
-    }
     surface->Release();
 
-    D3DLOCKED_RECT lockRect;
-    if (FAILED(surface->LockRect(&lockRect, NULL, 0)))
-    {
-        if (sysMemory)
-            sysMemory->Release();
-        CEGUI_THROW(RendererException("IDirect3DSurface9::LockRect failed."));
-    }
-
-    const PixelBuffer pixel_buffer(buffer, buffer_size, pixel_format);
-    const uchar* src = pixel_buffer.getPixelDataPtr();
-    char* dest = (char*)(lockRect.pBits);
-    UINT row = static_cast<UINT>(buffer_size.d_height);
-    for (UINT y = 0; y < row; y++)
-    {
-        memcpy(dest, src, pixel_buffer.getPitch());
-        src += pixel_buffer.getPitch();
-        dest += lockRect.Pitch;
-    }
-    surface->UnlockRect();
-
-    if (sysMemory)
-    {
-        HRESULT hr = d_owner.getDevice()->UpdateTexture(sysMemory, d_texture);
-        sysMemory->Release();
-
-        if (FAILED(hr))
-            CEGUI_THROW(RendererException("IDirect3DDevice9::UpdateTexture failed."));
-    }
+    if (FAILED(hr))
+        CEGUI_THROW(RendererException(
+            "D3DXLoadSurfaceFromMemory failed."));
 }
 
 //----------------------------------------------------------------------------//
@@ -608,19 +568,13 @@ void Direct3D9Texture::createDirect3D9Texture(const Sizef sz, D3DFORMAT format)
 
     const Sizef tex_sz(d_owner.getAdjustedSize(sz));
 
-    HRESULT hr = d_owner.getDevice()->CreateTexture(static_cast<UINT>(tex_sz.d_width),
-                                                    static_cast<UINT>(tex_sz.d_height),
-                                                    1, 0, format, D3DPOOL_MANAGED, &d_texture, NULL);
+    HRESULT hr = D3DXCreateTexture(d_owner.getDevice(),
+                                   static_cast<UINT>(tex_sz.d_width),
+                                   static_cast<UINT>(tex_sz.d_height),
+                                   1, 0, format, D3DPOOL_MANAGED, &d_texture);
 
     if (FAILED(hr))
-    {
-        hr = d_owner.getDevice()->CreateTexture(static_cast<UINT>(tex_sz.d_width),
-                                                static_cast<UINT>(tex_sz.d_height),
-                                                1, 0, format, D3DPOOL_DEFAULT, &d_texture, NULL);
-    }
-
-    if (FAILED(hr))
-        CEGUI_THROW(RendererException("IDirect3DDevice9::CreateTexture failed."));
+        CEGUI_THROW(RendererException("D3DXCreateTexture failed."));
 
     d_dataSize = sz;
     updateTextureSize();

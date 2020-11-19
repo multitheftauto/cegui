@@ -37,11 +37,7 @@ namespace CEGUI
 // amount of bits in a uint
 #define BITS_PER_UINT   (sizeof (uint) * 8)
 // must be a power of two
-#if defined(CEGUI_FONT_USE_GLYPH_PAGE_LOAD)
 #define GLYPHS_PER_PAGE 256
-#else
-#define GLYPHS_PER_PAGE 1
-#endif
 
 //----------------------------------------------------------------------------//
 const argb_t Font::DefaultColour = 0xFFFFFFFF;

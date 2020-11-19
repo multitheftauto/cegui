@@ -207,9 +207,9 @@ namespace CEGUI
         //! Type for handlers of a closing xml element.
         typedef void (Falagard_xmlHandler::*ElementEndHandler)();
         //! Map of handlers for opening xml elements.
-        typedef std::map<String, ElementStartHandler, StringFastLessCompare CEGUI_MAP_ALLOC(String, ElementStartHandler)> ElementStartHandlerMap;
+        typedef std::map<String, ElementStartHandler, StringFastLessCompare> ElementStartHandlerMap;
         //! Map of handlers for closing xml elements.
-        typedef std::map<String, ElementEndHandler, StringFastLessCompare CEGUI_MAP_ALLOC(String, ElementEndHandler)> ElementEndHandlerMap;
+        typedef std::map<String, ElementEndHandler, StringFastLessCompare> ElementEndHandlerMap;
 
         /*************************************************************************
             helper methods

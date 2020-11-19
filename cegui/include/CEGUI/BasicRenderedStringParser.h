@@ -193,8 +193,7 @@ protected:
     typedef void (BasicRenderedStringParser::*TagHandler)(RenderedString&,
                                                           const String&);
     //! definition of type used to despatch tag handler functions
-    typedef std::map<String, TagHandler, StringFastLessCompare
-        CEGUI_MAP_ALLOC(String, TagHandler)> TagHandlerMap;
+    typedef std::map<String, TagHandler, StringFastLessCompare> TagHandlerMap;
     //! Collection to map tag names to their handler functions.
     TagHandlerMap d_tagHandlers;
 };
