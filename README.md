@@ -1,4 +1,4 @@
-# Crazy Eddie's GUI System Mk-2
+# Crazy Eddie's GUI System Mk-2 - mtasa-blue branch based on v0-8 upstream
 [![CEGUI logo](https://bitbucket.org/cegui/cegui-promo/raw/default/logo/ceguilogo.png)](http://www.cegui.org.uk)
 http://www.cegui.org.uk
 
