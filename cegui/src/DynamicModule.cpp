@@ -159,12 +159,12 @@ static String getFailureString()
 }
 
 //----------------------------------------------------------------------------//
-static DYNLIB_HANDLE DynLibLoad(const String& name)
+static DYNLIB_HANDLE DynLibLoad(const String& name, const String& envModuleDir = "")
 {
     DYNLIB_HANDLE handle = 0;
 
     // prefer whatever location is set in CEGUI_MODULE_DIR environment var
-    const String envModuleDir(getModuleDirEnvVar());
+    //const String envModuleDir(getModuleDirEnvVar());
 
     if (!envModuleDir.empty())
         handle = DYNLIB_LOAD(envModuleDir + '/' + name);
@@ -189,7 +189,7 @@ static DYNLIB_HANDLE DynLibLoad(const String& name)
 }
 
 //----------------------------------------------------------------------------//
-DynamicModule::DynamicModule(const String& name) :
+DynamicModule::DynamicModule(const String& name, const String& envModuleDir = "") :
     d_pimpl(CEGUI_NEW_AO Impl(name))
 {
 	if (name.empty())
